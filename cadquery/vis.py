@@ -401,10 +401,16 @@ def show(
     gradient: bool = True,
     xpos: Union[int, float] = 0,
     ypos: Union[int, float] = 0,
+    brz = False,
+    arz = True,
+    brre = False,
+    arre = True,
 ):
     """
     Show CQ objects using VTK. This functions optionally allows to make screenshots.
     """
+
+    print(f"brz={brz} arz={arz} brre={brre} arre={arre}")
 
     # split objects
     shapes, vecs, locs, props = _split_showables(objs)
@@ -492,34 +498,57 @@ def show(
 
     # set camera
     camera = renderer.GetActiveCamera()
-    print(f"1: p={camera.GetPosition()} f={camera.GetFocalPoint()} v={camera.GetViewUp()} r={camera.GetRoll()} va={camera.GetViewAngle()}")
 
-    if position or focus or viewup:
+    # Original
+    #camera.Roll(roll)
+    #camera.Elevation(elevation)
+    #camera.Zoom(zoom)
+
+    #if position or focus:
+    #    if position:
+    #        camera.SetPosition(*position)
+    #    if focus:
+    #        camera.SetFocalPoint(*focus)
+    #else:
+    #    renderer.ResetCamera()
+
+    # set camera
+    print("vis set camera")
+    camera = renderer.GetActiveCamera()
+    if brz:
+        print(f"vis camera before reset zoom={zoom}")
+        camera.Zoom(zoom)
+    if brre:
+        print(f"vis camera before reset roll={roll}")
+        camera.Roll(roll)
+        print(f"vis camera before reset elevation={elevation}")
+        camera.Elevation(elevation)
+
+    if viewup or position or focus:
+        if viewup:
+            print(f"vis camera.SetViewUP({viewup})")
+            camera.SetViewUp(*viewup)
         if position:
-            print(f"vis camera position: {position}")
+            print(f"vis camera.SetPosition({position})")
             camera.SetPosition(*position)
         if focus:
-            print(f"vis camera focus: {focus}");
+            print(f"vis camera.SetFocalPoint({focus})")
             camera.SetFocalPoint(*focus)
-        if viewup:
-            print(f"vis camera viewup: {viewup}")
-            camera.SetViewUp(*viewup)
-#    else:
-#        print(f"vis camera reset camera");
-#        renderer.ResetCamera()
-    print(f"vis camera reset camera");
-    renderer.ResetCamera()
+    else:
+        print(f"vis camera.ResetCamera()")
+        renderer.ResetCamera()
 
-    print(f"2: p={camera.GetPosition()} f={camera.GetFocalPoint()} v={camera.GetViewUp()} r={camera.GetRoll()} va={camera.GetViewAngle()}")
+    if arz:
+        print(f"vis camera after reset zoom={zoom}")
+        camera.Zoom(zoom)
+    if arre:
+        print(f"vis camera after reset roll={roll}")
+        camera.Roll(roll)
+        print(f"vis camera after reset elevation={elevation}")
+        camera.Elevation(elevation)
 
-    print(f"vis camera roll: {roll}")
-    camera.Roll(roll)
-    print(f"vis camera elevation: {elevation}")
-    camera.Elevation(elevation)
-    print(f"vis camera zoom: {zoom}")
-    camera.Zoom(zoom)
-
-    print(f"3: p={camera.GetPosition()} f={camera.GetFocalPoint()} v={camera.GetViewUp()} r={camera.GetRoll()} va={camera.GetViewAngle()}")
+    # Print orientation
+    print(f"vis camera orientation: pos={camera.GetPosition()}, fp={camera.GetFocalPoint()}, vu={camera.GetViewUp()}, dis={camera.GetDistance()}, va={camera.GetViewAngle()}, cr={camera.GetClippingRange()}, o={camera.GetOrientation()}")
 
     # initialize and set size
     inter.Initialize()
