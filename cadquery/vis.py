@@ -393,7 +393,7 @@ def show(
     elevation: float = -45,
     position: Optional[Tuple[float, float, float]] = None,
     focus: Optional[Tuple[float, float, float]] = None,
-    viewup: Optional[Tuple[float, float, float]] = (0, 1, 0),
+    viewup: Optional[Tuple[float, float, float]] = None,
     width: Union[int, float] = 0.5,
     height: Union[int, float] = 0.5,
     trihedron: bool = True,
@@ -492,18 +492,34 @@ def show(
 
     # set camera
     camera = renderer.GetActiveCamera()
-    camera.Roll(roll)
-    camera.Elevation(elevation)
-    camera.Zoom(zoom)
-    camera.SetViewUp(*viewup)
+    print(f"1: p={camera.GetPosition()} f={camera.GetFocalPoint()} v={camera.GetViewUp()} r={camera.GetRoll()} va={camera.GetViewAngle()}")
 
-    if position or focus:
+    if position or focus or viewup:
         if position:
+            print(f"vis camera position: {position}")
             camera.SetPosition(*position)
         if focus:
+            print(f"vis camera focus: {focus}");
             camera.SetFocalPoint(*focus)
-    else:
-        renderer.ResetCamera()
+        if viewup:
+            print(f"vis camera viewup: {viewup}")
+            camera.SetViewUp(*viewup)
+#    else:
+#        print(f"vis camera reset camera");
+#        renderer.ResetCamera()
+    print(f"vis camera reset camera");
+    renderer.ResetCamera()
+
+    print(f"2: p={camera.GetPosition()} f={camera.GetFocalPoint()} v={camera.GetViewUp()} r={camera.GetRoll()} va={camera.GetViewAngle()}")
+
+    print(f"vis camera roll: {roll}")
+    camera.Roll(roll)
+    print(f"vis camera elevation: {elevation}")
+    camera.Elevation(elevation)
+    print(f"vis camera zoom: {zoom}")
+    camera.Zoom(zoom)
+
+    print(f"3: p={camera.GetPosition()} f={camera.GetFocalPoint()} v={camera.GetViewUp()} r={camera.GetRoll()} va={camera.GetViewAngle()}")
 
     # initialize and set size
     inter.Initialize()
