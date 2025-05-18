@@ -378,6 +378,22 @@ def style(
     return rv
 
 
+def tuple_to_str(tup: tuple, width: int = 0, padding: int = 0):
+    str_tup = ""
+    len_tup = len(tup)
+    a = []
+    for i in range(len_tup):
+        a.append(f"{tup[i]:{width}.2f}")
+    str_tup = "(" + ", ".join(a) + ")"
+    padded = f"{str_tup:<{padding}}"
+    return padded
+
+def print_camera_orientation(camera, msg=""):
+    def tuple_to_str_23(tup: tuple):
+        return tuple_to_str(tup, 7, 23)
+
+    print(f"{msg:<60}camera orientation: pos={tuple_to_str_23(camera.GetPosition())} fp={tuple_to_str_23(camera.GetFocalPoint())} vu={tuple_to_str_23(camera.GetViewUp())} dis={camera.GetDistance():<7.2f} va={camera.GetViewAngle():<7.2f} cr={tuple_to_str_23(camera.GetClippingRange())} o={tuple_to_str_23(camera.GetOrientation())} owxyz={tuple_to_str_23(camera.GetOrientationWXYZ())}")
+
 def show(
     *objs: Showable,
     scale: float = 0.2,
@@ -391,9 +407,11 @@ def show(
     zoom: float = 1.0,
     roll: float = -35,
     elevation: float = -45,
+    azimuth: float = 0,
     position: Optional[Tuple[float, float, float]] = None,
     focus: Optional[Tuple[float, float, float]] = None,
     viewup: Optional[Tuple[float, float, float]] = None,
+    clipping_range: Optional[Tuple[float, float]] = None,
     width: Union[int, float] = 0.5,
     height: Union[int, float] = 0.5,
     trihedron: bool = True,
@@ -401,16 +419,11 @@ def show(
     gradient: bool = True,
     xpos: Union[int, float] = 0,
     ypos: Union[int, float] = 0,
-    brz = False,
-    arz = True,
-    brre = False,
-    arre = True,
 ):
     """
     Show CQ objects using VTK. This functions optionally allows to make screenshots.
     """
 
-    print(f"brz={brz} arz={arz} brre={brre} arre={arre}")
 
     # split objects
     shapes, vecs, locs, props = _split_showables(objs)
@@ -498,57 +511,40 @@ def show(
 
     # set camera
     camera = renderer.GetActiveCamera()
+    print_camera_orientation(camera, f"vis show:+")
 
-    # Original
-    #camera.Roll(roll)
-    #camera.Elevation(elevation)
-    #camera.Zoom(zoom)
-
-    #if position or focus:
-    #    if position:
-    #        camera.SetPosition(*position)
-    #    if focus:
-    #        camera.SetFocalPoint(*focus)
-    #else:
-    #    renderer.ResetCamera()
-
-    # set camera
-    print("vis set camera")
+    # Get camera
     camera = renderer.GetActiveCamera()
-    if brz:
-        print(f"vis camera before reset zoom={zoom}")
-        camera.Zoom(zoom)
-    if brre:
-        print(f"vis camera before reset roll={roll}")
-        camera.Roll(roll)
-        print(f"vis camera before reset elevation={elevation}")
-        camera.Elevation(elevation)
-
-    if viewup or position or focus:
-        if viewup:
-            print(f"vis camera.SetViewUP({viewup})")
-            camera.SetViewUp(*viewup)
-        if position:
-            print(f"vis camera.SetPosition({position})")
-            camera.SetPosition(*position)
-        if focus:
-            print(f"vis camera.SetFocalPoint({focus})")
-            camera.SetFocalPoint(*focus)
-    else:
-        print(f"vis camera.ResetCamera()")
-        renderer.ResetCamera()
-
-    if arz:
-        print(f"vis camera after reset zoom={zoom}")
-        camera.Zoom(zoom)
-    if arre:
-        print(f"vis camera after reset roll={roll}")
-        camera.Roll(roll)
-        print(f"vis camera after reset elevation={elevation}")
-        camera.Elevation(elevation)
+    print_camera_orientation(camera, "vis show: get camera")
 
     # Print orientation
-    print(f"vis camera orientation: pos={camera.GetPosition()}, fp={camera.GetFocalPoint()}, vu={camera.GetViewUp()}, dis={camera.GetDistance()}, va={camera.GetViewAngle()}, cr={camera.GetClippingRange()}, o={camera.GetOrientation()}")
+    print_camera_orientation(camera, "vis show: before camera.ResetCamera()")
+    renderer.ResetCamera()
+    print_camera_orientation(camera, "vis show: after camera.ResetCamera()")
+
+    if viewup:
+        camera.SetViewUp(*viewup)
+        print_camera_orientation(camera, f"vis show: camera.SetViewUp({tuple_to_str(viewup)})")
+    if position:
+        camera.SetPosition(*position)
+        print_camera_orientation(camera, f"vis show: camera.SetPosition({tuple_to_str(position)})")
+    if focus:
+        camera.SetFocalPoint(*focus)
+        print_camera_orientation(camera, f"vis show: camera.SetFocalPoint({tuple_to_str(focus)})")
+
+    camera.Roll(roll)
+    print_camera_orientation(camera, f"vis show: camera.Roll({roll})")
+    camera.Elevation(elevation)
+    print_camera_orientation(camera, f"vis show: camera.Elevation({elevation})")
+    camera.Azimuth(azimuth)
+    print_camera_orientation(camera, f"vis show: camera.Elevation({elevation})")
+
+    camera.Zoom(zoom)
+    print_camera_orientation(camera, f"vis show: camera.Zoom({zoom})")
+
+    if clipping_range:
+        camera.SetClippingRange(*clipping_range)
+        print_camera_orientation(camera, f"vis show: camera.SetClippingRange({tuple_to_str(clipping_range)})")
 
     # initialize and set size
     inter.Initialize()
@@ -583,8 +579,10 @@ def show(
 
     # start interaction
     if interact:
+        print_camera_orientation(camera, f"vis show: before inter.Start")
         inter.Start()
 
+    print_camera_orientation(camera, f"vis show:-")
 
 # alias
 show_object = show
